@@ -240,7 +240,12 @@ def process_video(sess, video_path, output_path: str, class_names: Dict[int, str
 def main(args):
     """Main function."""
     # Load the ONNX model
-    sess = ort.InferenceSession(args.onnx)
+    sess_options = ort.SessionOptions()
+    sess = ort.InferenceSession(
+        args.onnx,
+        sess_options=sess_options,
+        providers=['CUDAExecutionProvider', 'CPUExecutionProvider']
+    )
     print(f"Using device: {ort.get_device()}")
     
     # Parse class names from labels argument if provided
