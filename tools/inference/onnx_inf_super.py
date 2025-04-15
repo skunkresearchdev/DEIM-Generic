@@ -229,8 +229,7 @@ def process_video(sess, video_path, output_path: str, class_names: Dict[int, str
             out.write(frame_with_detections)
             frame_count += 1
         
-        if frame_count % (batch_frames * 5) == 0:
-            print(f"Processed {frame_count}/{total_frames} frames ({frame_count/total_frames*100:.1f}%)...")
+        print(f"Processed {frame_count}/{total_frames} frames ({frame_count/total_frames*100:.1f}%)...")
 
     cap.release()
     out.release()

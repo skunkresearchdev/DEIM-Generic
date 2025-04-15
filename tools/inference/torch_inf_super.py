@@ -36,7 +36,8 @@ def process_image_batch(
     output_dir: str,
     class_names: Dict[int, str],
     batch_size: int = 4,
-    conf_threshold: float = 0.75,
+    conf_threshold: float = 0.4,
+    model_img_size: int = 640
 ):
     """
     Process a batch of images with the PyTorch model.
@@ -63,12 +64,12 @@ def process_image_batch(
         images_np = [np.array(img) for img in images_pil]
 
         # Resize images using our annotation package
-        resized_images, resize_infos = resize_batch_with_aspect_ratio(images_np, 640)
+        resized_images, resize_infos = resize_batch_with_aspect_ratio(images_np, model_img_size)
 
         # Convert to tensors
         transforms = T.Compose([T.ToTensor()])
         batch_tensors = [
-            transforms(Image.fromarray(img)).unsqueeze(0) # type: ignore
+            transforms(Image.fromarray(img)).unsqueeze(0)  # type: ignore
             for img in resized_images  # type: ignore
         ]  # type: ignore
         batch_tensor = torch.cat(batch_tensors, dim=0)
@@ -128,14 +129,15 @@ def process_image(
     file_path: str,
     output_path: str,
     class_names: Dict[int, str],
-    conf_threshold: float = 0.75,
+    conf_threshold: float = 0.4,
+    model_img_size: int = 640
 ):
     """Process a single image with the PyTorch model."""
     im_pil = Image.open(file_path).convert("RGB")
     im_np = np.array(im_pil)
 
     # Resize image while preserving aspect ratio using our package
-    resized_im_np, resize_info = resize_with_aspect_ratio(im_np, 640)
+    resized_im_np, resize_info = resize_with_aspect_ratio(im_np, model_img_size)
 
     # Convert to tensor for the model
     transforms = T.Compose([T.ToTensor()])
@@ -179,7 +181,7 @@ def process_image(
         scores=scores_np,
         labels=labels_np,
         class_names=class_names,
-        conf_threshold=0.4,
+        conf_threshold=conf_threshold,
     )
 
     # Create output directory if needed
@@ -198,6 +200,7 @@ def process_video(
     class_names: Dict[int, str],
     batch_size: int = 8,
     conf_threshold: float = 0.75,
+    model_img_size: int = 640
 ):
     """Process a video with the PyTorch model, using batch processing for frames."""
     cap = cv2.VideoCapture(file_path)
@@ -236,11 +239,11 @@ def process_video(
             break
 
         # Resize frames using our annotation package
-        resized_frames, resize_infos = resize_batch_with_aspect_ratio(frames, 640)
+        resized_frames, resize_infos = resize_batch_with_aspect_ratio(frames, model_img_size)
 
         # Convert to tensors
         batch_tensors = [
-            transforms(Image.fromarray(img)).unsqueeze(0) # type: ignore
+            transforms(Image.fromarray(img)).unsqueeze(0)  # type: ignore
             for img in resized_frames  # type: ignore
         ]  # type: ignore
         batch_tensor = torch.cat(batch_tensors, dim=0)
@@ -283,7 +286,7 @@ def process_video(
             scores_batch=scores_batch,
             labels_batch=labels_batch,
             class_names=class_names,
-            conf_threshold=0.4,
+            conf_threshold=conf_threshold,
         )
 
         # Write frames to video
@@ -293,10 +296,10 @@ def process_video(
             out.write(frame_with_detections)
             frame_count += 1
 
-        if frame_count % (batch_size) == 0:
-            print(
-                f"Processed {frame_count}/{total_frames} frames ({frame_count / total_frames * 100:.1f}%)..."
-            )
+
+        print(
+            f"{batch_size}Processed {frame_count}/{total_frames} frames ({frame_count / total_frames * 100:.1f}%)..."
+        )
 
     cap.release()
     out.release()
@@ -379,18 +382,34 @@ def main(args):
 
         print(f"Found {len(image_paths)} images to process")
         process_image_batch(
-            model, device, image_paths, output_path, class_names, args.batch_size, args.conf_threshold
+            model,
+            device,
+            image_paths,
+            output_path,
+            class_names,
+            args.batch_size,
+            args.conf_threshold,
+            args.model_img_size
         )
     else:
         # Check if the input file is an image or a video
         file_path = args.input
         if os.path.splitext(file_path)[-1].lower() in [".jpg", ".jpeg", ".png", ".bmp"]:
             # Process as image
-            process_image(model, device, file_path, output_path, class_names, args.conf_threshold)
+            process_image(
+                model, device, file_path, output_path, class_names, args.conf_threshold, args.model_img_size
+            )
         else:
             # Process as video
             process_video(
-                model, device, file_path, output_path, class_names, args.batch_size, args.conf_threshold
+                model,
+                device,
+                file_path,
+                output_path,
+                class_names,
+                args.batch_size,
+                args.conf_threshold,
+                args.model_img_size
             )
 
 
@@ -429,6 +448,8 @@ if __name__ == "__main__":
         default=0.75,
         help="Confidence threshold for filtering detections.",
     )
+    
+    parser.add_argument("-s", "--model_img_size", type=int, default=640)
 
     args = parser.parse_args()
     main(args)
