@@ -14,8 +14,11 @@ import torch
 import torch.nn as nn
 import torchvision.transforms as T
 
+print(os.path.dirname(__file__))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
+
 # Import from our new annotation package
-from annotate import (
+from tools.inference.annotate import (
     annotate_batch,
     annotate_detections,
     apply_detection_preprocessing,
@@ -25,7 +28,7 @@ from annotate import (
 )
 from PIL import Image
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
+
 from engine.core import YAMLConfig
 
 

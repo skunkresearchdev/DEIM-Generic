@@ -36,5 +36,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     for file in args.checkpoint_dir.glob(f"*{args.filter}*.pth"):
-        if "_converted" not in file.name:
             save_only_ema_weights(file)

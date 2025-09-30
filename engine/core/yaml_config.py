@@ -7,9 +7,10 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-
+from datetime import datetime as dt
 import re
 import copy
+from pathlib import Path
 
 from ._config import BaseConfig
 from .workspace import create
@@ -21,7 +22,8 @@ class YAMLConfig(BaseConfig):
 
         cfg = load_config(cfg_path)
         cfg = merge_dict(cfg, kwargs)
-
+        ts = dt.now().strftime("%Y%m%d_%H%M%S")
+        cfg['output_dir'] = f"{cfg['output_dir']}/{ts}"
         self.yaml_cfg = copy.deepcopy(cfg)
 
         for k in super().__dict__:

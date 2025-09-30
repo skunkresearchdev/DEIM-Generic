@@ -18,15 +18,13 @@ except Exception:
 
 
 # Import from our annotation package
-from annotate import (
+from .annotate import (
     DetectionResult,
     ResizeInfo,
     annotate_batch,
     annotate_detections,
-    annotate_frames,
     apply_detection_preprocessing,
     apply_detection_preprocessing_batch,
-    resize_batch_with_aspect_ratio,
     resize_with_aspect_ratio,
 )
 
@@ -631,6 +629,7 @@ class VideoProcessor:
         batch_size: int = 16,
         conf_threshold: float = 0.5,
         model_input_size: int = DEFAULT_MODEL_INPUT_SIZE,
+        is_tracking=False
     ):
         """
         Initialize the VideoProcessor.
@@ -651,6 +650,7 @@ class VideoProcessor:
         self.batch_size = batch_size
         self.conf_threshold = conf_threshold
         self.model_input_size = model_input_size
+        self.is_tracking = is_tracking
 
         # Initialize class_names if not provided
         self.class_names = class_names
@@ -887,6 +887,7 @@ class VideoProcessor:
                     labels_batch=labels_batch,
                     class_names=self.class_names,
                     conf_threshold=self.conf_threshold,
+                    is_tracking=self.is_tracking
                 )
             except Exception as e:
                 logger.error(f"Error annotating frames: {e}")
@@ -1036,7 +1037,7 @@ class VideoProcessor:
                 self.cap.release()
             if self.out_writer is not None and self.out_writer.isOpened():
                 self.out_writer.release()
-            cv2.destroyAllWindows()
+            ... #cv2.destroyAllWindows()
 
             # Print memory pool stats before cleaning up
             if hasattr(self.inferencer, "memory_pool") and self.inferencer.memory_pool:
@@ -1170,6 +1171,7 @@ class ImageProcessor:
             class_names: dictionary mapping class IDs to names for annotation (optional)
         """
         self.inferencer = inferencer
+        self.is_tracking = self.is_tracking
 
         # Initialize class_names if not provided
         if class_names is None:
@@ -1184,6 +1186,7 @@ class ImageProcessor:
         output_path: Path,
         conf_threshold: float = 0.5,
         model_input_size: int = DEFAULT_MODEL_INPUT_SIZE,
+        is_tracking= False
     ):
         """
         Processes a single image using the ONNXInferencer and IO Binding.
@@ -1351,6 +1354,7 @@ class ImageProcessor:
                     labels=labels,
                     class_names=self.class_names,
                     conf_threshold=conf_threshold,
+                    is_tracking=self.is_tracking
                 )
             except Exception as e:
                 logger.error(f"Error annotating image: {e}")
@@ -1559,6 +1563,7 @@ class ImageProcessor:
                     labels_batch=labels_batch,
                     class_names=self.class_names,
                     conf_threshold=conf_threshold,
+                    is_tracking=self.is_tracking
                 )
             except Exception as e:
                 logger.error(f"Error annotating batch of images: {e}")
@@ -1991,6 +1996,7 @@ def main(
     model_input_size: int = DEFAULT_MODEL_INPUT_SIZE,
     cuda_device_id: int = 0,
     debug: bool = False,
+    is_tracking=False,
 ):
     """
     Main function to orchestrate loading and processing.
@@ -2122,6 +2128,7 @@ def main(
                 batch_size=config.batch_size,
                 conf_threshold=config.conf_threshold,
                 model_input_size=config.model_input_size,
+                is_tracking=is_tracking
             )
             video_processor.run()
             logger.debug("Video processing completed.")
