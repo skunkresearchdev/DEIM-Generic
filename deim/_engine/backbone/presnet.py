@@ -8,9 +8,9 @@ import torch.nn.functional as F
 
 from collections import OrderedDict
 
-from .common import get_activation, FrozenBatchNorm2d
+from deim._engine.backbone.common import get_activation, FrozenBatchNorm2d
 
-from ..core import register
+from deim._engine.core import register
 import os
 
 

@@ -6,7 +6,10 @@ evaluator:
   type: CocoEvaluator
   iou_types: ["bbox"]
 
-num_classes: 1  # your dataset classes + 1 (background)
+num_classes: 2  
+class_names:
+  0: wheel
+  1: hub
 remap_mscoco_category: True
 
 train_dataloader:

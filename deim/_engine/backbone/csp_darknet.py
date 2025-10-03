@@ -10,8 +10,8 @@ import torch.nn.functional as F
 import math
 import warnings
 
-from .common import get_activation
-from ..core import register
+from deim._engine.backbone.common import get_activation
+from deim._engine.core import register
 
 
 def autopad(k, p=None):

@@ -12,9 +12,9 @@ import re
 import copy
 from pathlib import Path
 
-from ._config import BaseConfig
-from .workspace import create
-from .yaml_utils import load_config, merge_config, merge_dict
+from deim._engine.core._config import BaseConfig
+from deim._engine.core.workspace import create
+from deim._engine.core.yaml_utils import load_config, merge_config, merge_dict
 
 class YAMLConfig(BaseConfig):
     def __init__(self, cfg_path: str, **kwargs) -> None:
@@ -100,7 +100,7 @@ class YAMLConfig(BaseConfig):
     def evaluator(self, ):
         if self._evaluator is None and 'evaluator' in self.yaml_cfg:
             if self.yaml_cfg['evaluator']['type'] == 'CocoEvaluator':
-                from ..data import get_coco_api_from_dataset
+                from deim._engine.data import get_coco_api_from_dataset
                 base_ds = get_coco_api_from_dataset(self.val_dataloader.dataset)
                 self._evaluator = create('evaluator', self.global_cfg, coco_gt=base_ds)
             else:
@@ -158,7 +158,7 @@ class YAMLConfig(BaseConfig):
         if total_batch_size is None:
             bs = cfg.get('batch_size')
         else:
-            from ..misc import dist_utils
+            from deim._engine.misc import dist_utils
             assert total_batch_size % dist_utils.get_world_size() == 0, \
                 'total_batch_size should be divisible by world size'
             bs = total_batch_size // dist_utils.get_world_size()

@@ -172,7 +172,7 @@ class BaseConfig(object):
     @property
     def ema(self, ) -> nn.Module:
         if self._ema is None and self.use_ema and self.model is not None:
-            from ..optim import ModelEMA
+            from deim._engine.optim import ModelEMA
             self._ema = ModelEMA(self.model, self.ema_decay, self.ema_warmups)
         return self._ema
 

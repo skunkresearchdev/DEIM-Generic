@@ -13,11 +13,11 @@ import torch.nn.functional as F
 import torch.nn.init as init 
 from typing import List
 
-from .denoising import get_contrastive_denoising_training_group
-from .utils import bias_init_with_prob, get_activation, inverse_sigmoid
-from .utils import deformable_attention_core_func_v2
+from deim._engine.deim.denoising import get_contrastive_denoising_training_group
+from deim._engine.deim.utils import bias_init_with_prob, get_activation, inverse_sigmoid
+from deim._engine.deim.utils import deformable_attention_core_func_v2
 
-from ..core import register
+from deim._engine.core import register
 
 __all__ = ['RTDETRTransformerv2']
 

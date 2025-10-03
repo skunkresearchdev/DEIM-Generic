@@ -8,7 +8,7 @@ import copy
 import yaml
 from typing import Any, Dict, Optional, List
 
-from .workspace import GLOBAL_CONFIG
+from deim._engine.core.workspace import GLOBAL_CONFIG
 
 __all__ = [
     'load_config',

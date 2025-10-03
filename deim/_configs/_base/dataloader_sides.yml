@@ -1,0 +1,42 @@
+# DataLoader configuration for SIDES model (wheels - larger objects)
+
+train_dataloader:
+  dataset:
+    transforms:
+      ops:
+        - {type: RandomPhotometricDistort, p: 0.5}  # Thermal signature variations
+        - {type: RandomZoomOut, fill: 0}  # OK for large wheels
+        - {type: RandomIoUCrop, p: 0.8}  # OK for large objects
+        - {type: SanitizeBoundingBoxes, min_size: 1}
+        - {type: RandomHorizontalFlip}  # Left/right symmetry
+        # Thermal-specific augmentations for mining environment
+        - {type: GaussianBlur, kernel_size: [3, 5], sigma: [0.1, 2.0], p: 0.3}  # Heat shimmer, dust, motion blur
+        - {type: RandomAdjustSharpness, sharpness_factor: 2, p: 0.3}  # Thermal camera focus variation
+        - {type: Resize, size: [640, 640], }
+        - {type: SanitizeBoundingBoxes, min_size: 1}
+        - {type: ConvertPILImage, dtype: 'float32', scale: True}
+        - {type: ConvertBoxes, fmt: 'cxcywh', normalize: True}
+      policy:
+        name: stop_epoch
+        epoch: 71  # 89% of 80 epochs for sides
+        ops: ['Mosaic', 'RandomPhotometricDistort', 'RandomZoomOut', 'RandomIoUCrop', 'GaussianBlur', 'RandomAdjustSharpness']
+
+  collate_fn:
+    type: BatchImageCollateFunction
+    base_size: 640
+    base_size_repeat: 3
+    stop_epoch: 71  # 89% of 80 epochs for sides
+
+  shuffle: True
+  total_batch_size: 32
+  num_workers: 4
+
+val_dataloader:
+  dataset:
+    transforms:
+      ops:
+        - {type: Resize, size: [640, 640], }
+        - {type: ConvertPILImage, dtype: 'float32', scale: True}
+  shuffle: False
+  total_batch_size: 128
+  num_workers: 4

@@ -12,9 +12,9 @@ import torch.nn.functional as F
 from scipy.optimize import linear_sum_assignment
 from typing import Dict
 
-from .box_ops import box_cxcywh_to_xyxy, generalized_box_iou
+from deim._engine.deim.box_ops import box_cxcywh_to_xyxy, generalized_box_iou
 
-from ..core import register
+from deim._engine.core import register
 import numpy as np
 
 

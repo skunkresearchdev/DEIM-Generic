@@ -142,6 +142,22 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
+### Monitoring Training with TensorBoard
+
+```bash
+# Launch TensorBoard (from project root)
+tensorboard --logdir=deim_outputs
+
+# Open browser to: http://localhost:6006
+# View real-time training metrics, losses, and validation results
+```
+
+**TensorBoard Features**:
+- 📊 Real-time loss curves (training & validation)
+- 📈 Learning rate schedules
+- 🎯 mAP/precision/recall metrics
+- 🖼️ Sample predictions with ground truth
+
 ### Training
 
 ```python
@@ -292,14 +308,30 @@ Training: 80 epochs (71 aug + 9 clean)
 Batch Size: 32
 ```
 
-### Custom Configuration
+### Training on Custom Datasets
 
+**Want to train DEIM on your own dataset?**
+
+📚 **Documentation**:
+- **[QUICKSTART.md](docs/QUICKSTART.md)** - Get started in 3 steps (5 minutes)
+- **[CONFIGURATION_REFERENCE.md](docs/CONFIGURATION_REFERENCE.md)** - Complete parameter reference
+
+**Quick example**:
 ```python
-# Create custom YAML config
-model = DEIM(config='path/to/custom.yml')
+from deim import DEIM
+
+# 1. Create config files (see QUICKSTART.md)
+# 2. Train on your dataset
+model = DEIM(config='my_dataset')
 model.train(epochs=200)
 
-# Override at runtime
+# 3. Run inference
+model.load('deim_outputs/my_dataset/best_stg2.pth')
+results = model.predict('my_image.jpg', visualize=True)
+```
+
+**Runtime overrides**:
+```python
 model = DEIM(config='under')
 model.train(
     epochs=500,              # Auto-scales to 445 (89%) + 55 (11%)

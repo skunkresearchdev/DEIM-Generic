@@ -4,7 +4,7 @@ Copyright(c) 2023 lyuwenyu. All Rights Reserved.
 """
 
 
-from ._transforms import (
+from deim._engine.data.transforms._transforms import (
     EmptyTransform,
     RandomPhotometricDistort,
     RandomZoomOut,
@@ -18,5 +18,5 @@ from ._transforms import (
     ConvertBoxes,
     ConvertPILImage,
 )
-from .container import Compose
-from .mosaic import Mosaic
+from deim._engine.data.transforms.container import Compose
+from deim._engine.data.transforms.mosaic import Mosaic

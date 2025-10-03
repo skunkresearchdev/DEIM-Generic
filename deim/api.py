@@ -199,7 +199,7 @@ class DEIM:
                 conf_threshold: float = 0.4,
                 visualize: bool = False,
                 save_path: Optional[str] = None,
-                save_dir: Optional[str] = None) -> Union[Dict, List[Dict]]:
+                save_dir: Optional[str] = None) -> List[Dict]:
         """
         Run inference on images or videos
 
@@ -211,7 +211,7 @@ class DEIM:
             save_dir: Directory to save batch outputs
 
         Returns:
-            Detection results as dictionary or list of dictionaries
+            List of detection result dictionaries (always a list, even for single images)
 
         Examples:
             >>> # Single image
@@ -273,6 +273,10 @@ class DEIM:
         )
 
         print(f"✓ Inference complete")
+
+        # Always return a list for consistency
+        if not isinstance(results, list):
+            results = [results]
 
         return results
 

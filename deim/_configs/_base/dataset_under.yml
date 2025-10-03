@@ -7,6 +7,8 @@ evaluator:
   iou_types: ["bbox"]
 
 num_classes: 1  # your dataset classes + 1 (background)
+class_names:
+  0: brakes
 remap_mscoco_category: True
 
 train_dataloader:

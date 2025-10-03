@@ -13,9 +13,9 @@ import torchvision
 from PIL import Image
 import faster_coco_eval
 import faster_coco_eval.core.mask as coco_mask
-from ._dataset import DetDataset
-from .._misc import convert_to_tv_tensor
-from ...core import register
+from deim._engine.data.dataset._dataset import DetDataset
+from deim._engine.data._misc import convert_to_tv_tensor
+from deim._engine.core import register
 
 torchvision.disable_beta_transforms_warning()
 faster_coco_eval.init_as_pycocotools()

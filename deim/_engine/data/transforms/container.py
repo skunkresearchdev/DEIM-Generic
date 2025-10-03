@@ -14,8 +14,8 @@ import torchvision.transforms.v2 as T
 
 from typing import Any, Dict, List, Optional
 
-from ._transforms import EmptyTransform
-from ...core import register, GLOBAL_CONFIG
+from deim._engine.data.transforms._transforms import EmptyTransform
+from deim._engine.core import register, GLOBAL_CONFIG
 torchvision.disable_beta_transforms_warning()
 import random
 

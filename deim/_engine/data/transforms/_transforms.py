@@ -15,11 +15,11 @@ import PIL.Image
 
 from typing import Any, Dict, List, Optional
 
-from .._misc import convert_to_tv_tensor, _boxes_keys
-from .._misc import Image, Video, Mask, BoundingBoxes
-from .._misc import SanitizeBoundingBoxes
+from deim._engine.data._misc import convert_to_tv_tensor, _boxes_keys
+from deim._engine.data._misc import Image, Video, Mask, BoundingBoxes
+from deim._engine.data._misc import SanitizeBoundingBoxes
 
-from ...core import register
+from deim._engine.core import register
 torchvision.disable_beta_transforms_warning()
 
 

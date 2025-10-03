@@ -6,8 +6,8 @@ Copyright(c) 2023 lyuwenyu. All Rights Reserved.
 import torch
 import torchvision
 
-from ..core import register
-from .utils import IntermediateLayerGetter
+from deim._engine.core import register
+from deim._engine.backbone.utils import IntermediateLayerGetter
 
 __all__ = ['TorchVisionModel']
 

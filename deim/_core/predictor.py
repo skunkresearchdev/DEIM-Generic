@@ -58,32 +58,55 @@ class Predictor:
     def _load_model(self, checkpoint_path: str) -> nn.Module:
         """Load model from checkpoint"""
 
-        # Add engine to path
-        engine_path = Path(__file__).parent.parent / "_engine"
-        if str(engine_path) not in sys.path:
-            sys.path.insert(0, str(engine_path))
+        # By importing these, we are registering the modules in the workspace
+        import deim._engine.backbone
+        import deim._engine.deim
 
         try:
-            # Import DEIM model
-            from deim import DEIM as DEIMModel
-            from core import YAMLConfig
+            from deim._engine.core.yaml_config import YAMLConfig
+            import yaml
+            import tempfile
+            import os
+            from collections import OrderedDict
 
-            # Create model from config
-            model_config = self.config.get('DEIM', {})
+            # YAMLConfig needs a config file path. We have a dict.
+            # So, we write the dict to a temporary file.
+            with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.yml') as f:
+                yaml.dump(self.config, f)
+                temp_config_path = f.name
+            
+            # The YAMLConfig class modifies the output_dir by adding a timestamp.
+            # To avoid creating unwanted directories, we can point it to a temp dir.
+            # However, let's first try without this and see if it's a problem.
+            # The config from the API should have 'output_dir' set.
+            
+            # Create YAMLConfig object. This will also handle model creation.
+            cfg = YAMLConfig(temp_config_path)
+            model = cfg.model
+            
+            os.remove(temp_config_path)
 
-            # Initialize model
-            model = DEIMModel(**model_config)
-
-            # Load checkpoint
+            # Load the checkpoint
             checkpoint = torch.load(checkpoint_path, map_location=self.device)
 
-            if 'model' in checkpoint:
-                model.load_state_dict(checkpoint['model'])
+            # Extract state dict from checkpoint
+            if 'ema' in checkpoint and checkpoint['ema'] is not None:
+                state_dict = checkpoint['ema']['module']
+                print("INFO: Loading EMA weights for inference.")
+            elif 'model' in checkpoint:
+                state_dict = checkpoint['model']
             elif 'state_dict' in checkpoint:
-                model.load_state_dict(checkpoint['state_dict'])
+                state_dict = checkpoint['state_dict']
             else:
-                # Assume checkpoint is the state dict
-                model.load_state_dict(checkpoint)
+                state_dict = checkpoint
+
+            # Clean state dict keys if they are from a parallelized model
+            new_state_dict = OrderedDict()
+            for k, v in state_dict.items():
+                name = k[7:] if k.startswith('module.') else k
+                new_state_dict[name] = v
+            
+            model.load_state_dict(new_state_dict)
 
             model = model.to(self.device)
             model.eval()
@@ -91,19 +114,9 @@ class Predictor:
             return model
 
         except Exception as e:
-            print(f"Error loading model: {str(e)}")
-            print("Attempting alternative loading method...")
-
-            # Alternative: Load as generic PyTorch model
-            checkpoint = torch.load(checkpoint_path, map_location=self.device)
-
-            # Try to reconstruct model from checkpoint
-            if 'model' in checkpoint:
-                model = checkpoint['model']
-            else:
-                raise RuntimeError(f"Could not load model from checkpoint: {checkpoint_path}")
-
-            return model.to(self.device)
+            print(f"❌ Failed to load model dynamically: {e}")
+            print("   Please ensure your checkpoint and config are compatible.")
+            raise e
 
     def predict(self,
                 sources: Union[str, List[str]],
@@ -162,7 +175,7 @@ class Predictor:
         image_np = np.array(image)
 
         # Resize image
-        resized, scale = self._resize_image(image_np, self.img_size)
+        resized, scale, pad_info = self._resize_image(image_np, self.img_size)
 
         # Convert to tensor
         transform = T.Compose([T.ToTensor()])
@@ -172,8 +185,9 @@ class Predictor:
         with torch.no_grad():
             outputs = self.model(image_tensor)
 
-        # Process outputs
-        results = self._process_outputs(outputs, scale, conf_threshold)
+        # Process outputs - pass original image shape and padding info
+        orig_h, orig_w = image_np.shape[:2]
+        results = self._process_outputs(outputs, (orig_w, orig_h), scale, pad_info, conf_threshold)
 
         # Add visualization if requested
         if visualize and self.supervision_available:
@@ -295,7 +309,13 @@ class Predictor:
         return results
 
     def _resize_image(self, image: np.ndarray, target_size: int):
-        """Resize image maintaining aspect ratio"""
+        """Resize image maintaining aspect ratio
+
+        Returns:
+            padded: Padded square image
+            scale: Scaling factor applied
+            pad_info: Dict with padding offsets {'top', 'left'}
+        """
 
         h, w = image.shape[:2]
         scale = target_size / max(h, w)
@@ -319,40 +339,71 @@ class Predictor:
             cv2.BORDER_CONSTANT, value=(114, 114, 114)
         )
 
-        return padded, scale
+        pad_info = {'top': top, 'left': left}
+        return padded, scale, pad_info
 
     def _process_outputs(self,
-                        outputs: torch.Tensor,
+                        outputs: Dict[str, torch.Tensor],
+                        orig_size: tuple,
                         scale: float,
+                        pad_info: dict,
                         conf_threshold: float) -> Dict[str, Any]:
-        """Process model outputs to detection format"""
+        """Process model outputs to detection format
 
-        # This depends on the exact output format of DEIM model
-        # Assuming outputs are (labels, boxes, scores) or similar
+        Args:
+            outputs: Model outputs dict with 'pred_logits' and 'pred_boxes'
+            orig_size: Original image size as (width, height) - COCO format
+            scale: Scaling factor used during resize
+            pad_info: Padding information {'top': int, 'left': int}
+            conf_threshold: Confidence threshold for filtering
+        """
 
-        if isinstance(outputs, tuple) and len(outputs) == 3:
-            labels, boxes, scores = outputs
-        else:
-            # Handle different output formats
-            # This may need adjustment based on actual DEIM output
-            boxes = outputs[..., :4]
-            scores = outputs[..., 4]
-            labels = outputs[..., 5:].argmax(-1)
+        # DEIM returns dict with 'pred_logits' and 'pred_boxes'
+        # Boxes are relative to the padded 640x640 image
+        # Need to: 1) scale to 640x640, 2) remove padding, 3) scale to original
 
-        # Convert to numpy
-        if isinstance(boxes, torch.Tensor):
-            boxes = boxes.cpu().numpy()
-            scores = scores.cpu().numpy()
-            labels = labels.cpu().numpy()
+        # Import postprocessor
+        from deim._engine.deim.postprocessor import PostProcessor
+
+        # Initialize postprocessor if not already done
+        if not hasattr(self, 'postprocessor'):
+            self.postprocessor = PostProcessor(
+                num_classes=self.config.get('num_classes', 80),
+                use_focal_loss=self.config.get('use_focal_loss', True),
+                num_top_queries=self.config.get('num_top_queries', 300)
+            )
+            # Enable deploy mode for tuple output
+            self.postprocessor.deploy()
+
+        # Use padded image size (640x640) for postprocessor
+        batch_size = outputs['pred_logits'].shape[0]
+        padded_size = torch.tensor([[self.img_size, self.img_size]] * batch_size,
+                                   dtype=torch.float32,
+                                   device=self.device)
+
+        # Apply postprocessor - returns (labels, boxes, scores) when in deploy mode
+        # Boxes are now in pixel coordinates relative to 640x640 padded image
+        labels, boxes, scores = self.postprocessor(outputs, padded_size)
+
+        # Convert to numpy and get first batch element
+        labels = labels[0].cpu().numpy()
+        boxes = boxes[0].cpu().numpy()
+        scores = scores[0].cpu().numpy()
+
+        # Remove padding offset - boxes are in xyxy format
+        # [x1, y1, x2, y2] relative to padded image
+        boxes[:, [0, 2]] -= pad_info['left']  # x coordinates
+        boxes[:, [1, 3]] -= pad_info['top']   # y coordinates
+
+        # Scale back to original image size
+        # Boxes are currently relative to resized image (after removing padding)
+        boxes /= scale
 
         # Apply confidence threshold
         mask = scores > conf_threshold
         boxes = boxes[mask]
         scores = scores[mask]
         labels = labels[mask]
-
-        # Rescale boxes
-        boxes = boxes / scale
 
         return {
             'boxes': boxes,

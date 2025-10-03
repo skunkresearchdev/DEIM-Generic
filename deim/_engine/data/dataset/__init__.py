@@ -4,13 +4,13 @@ Copyright(c) 2023 lyuwenyu. All Rights Reserved.
 """
 
 # from ._dataset import DetDataset
-from .coco_dataset import CocoDetection
-from .coco_dataset import (
+from deim._engine.data.dataset.coco_dataset import CocoDetection
+from deim._engine.data.dataset.coco_dataset import (
     mscoco_category2name,
     mscoco_category2label,
     mscoco_label2category,
 )
-from .coco_eval import CocoEvaluator
-from .coco_utils import get_coco_api_from_dataset
-from .voc_detection import VOCDetection
-from .voc_eval import VOCEvaluator
+from deim._engine.data.dataset.coco_eval import CocoEvaluator
+from deim._engine.data.dataset.coco_utils import get_coco_api_from_dataset
+from deim._engine.data.dataset.voc_detection import VOCDetection
+from deim._engine.data.dataset.voc_eval import VOCEvaluator

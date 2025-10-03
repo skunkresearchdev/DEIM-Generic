@@ -17,9 +17,9 @@ try:
 except ImportError:
     from xml.etree.ElementTree import parse as ET_parse
 
-from ._dataset import DetDataset
-from .._misc import convert_to_tv_tensor
-from ...core import register
+from deim._engine.data.dataset._dataset import DetDataset
+from deim._engine.data._misc import convert_to_tv_tensor
+from deim._engine.core import register
 
 @register()
 class VOCDetection(torchvision.datasets.VOCDetection, DetDataset):

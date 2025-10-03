@@ -13,8 +13,8 @@ import torch
 
 from faster_coco_eval import COCO, COCOeval_faster
 import faster_coco_eval.core.mask as mask_util
-from ...core import register
-from ...misc import dist_utils
+from deim._engine.core import register
+from deim._engine.misc import dist_utils
 __all__ = ['CocoEvaluator',]
 
 

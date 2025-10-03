@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from collections import OrderedDict
 
 
-from ..core import register
+from deim._engine.core import register
 
 
 class BasicBlock(nn.Module):

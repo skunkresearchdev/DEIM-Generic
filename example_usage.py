@@ -63,19 +63,33 @@ def example_inference():
 
 
 def example_custom_dataset():
-    """Example: Using custom dataset"""
+    """Example: Training on a custom dataset
 
-    # Initialize model with custom config
-    model = DEIM(config='under')
+    For detailed instructions, see: docs/CUSTOM_DATASET_GUIDE.md
 
-    # Train with custom dataset path
+    Quick steps:
+    1. Prepare dataset in COCO format
+    2. Create config files:
+       - deim/_configs/_base/dataset_my_dataset.yml
+       - deim/_configs/_base/dataloader_my_dataset.yml
+       - deim/_configs/my_dataset.yml
+    3. Train!
+    """
+
+    # Initialize model with your custom config name
+    model = DEIM(config='my_dataset')  # Uses deim/_configs/my_dataset.yml
+
+    # Train from scratch
+    model.train(epochs=100)
+
+    # Or fine-tune from pretrained weights
     # model.train(
-    #     dataset_path='/path/to/custom/dataset',
-    #     epochs=100,
-    #     batch_size=16
+    #     pretrained='deim_outputs/under/best_stg2.pth',
+    #     epochs=50
     # )
 
-    print("Custom dataset example prepared")
+    print("Custom dataset training started!")
+    print("See docs/CUSTOM_DATASET_GUIDE.md for complete configuration guide")
 
 
 if __name__ == '__main__':

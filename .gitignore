@@ -1,5 +1,9 @@
 _old
 *.pyc
-deim_outputs/under/*
-deim_outputs/sides/*
-__pycache__
+__pycache__/
+deim_outputs/under/
+deim_outputs/sides/
+*.ipynb
+*.png
+weight/
+

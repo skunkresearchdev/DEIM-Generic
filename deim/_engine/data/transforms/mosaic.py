@@ -9,8 +9,8 @@ import torchvision.transforms.v2.functional as F
 import random
 from PIL import Image
 
-from .._misc import convert_to_tv_tensor
-from ...core import register
+from deim._engine.data._misc import convert_to_tv_tensor
+from deim._engine.core import register
 
 
 @register()

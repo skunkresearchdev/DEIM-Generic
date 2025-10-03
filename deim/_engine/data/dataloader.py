@@ -18,7 +18,7 @@ from torchvision.transforms.v2 import functional as VF, InterpolationMode
 import random
 from functools import partial
 
-from ..core import register
+from deim._engine.core import register
 torchvision.disable_beta_transforms_warning()
 from copy import deepcopy
 from PIL import Image, ImageDraw

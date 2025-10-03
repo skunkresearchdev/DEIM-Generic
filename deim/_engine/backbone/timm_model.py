@@ -5,8 +5,8 @@ https://towardsdatascience.com/getting-started-with-pytorch-image-models-timm-a-
 import torch
 from torchvision.models.feature_extraction import get_graph_node_names, create_feature_extractor
 
-from .utils import IntermediateLayerGetter
-from ..core import register
+from deim._engine.backbone.utils import IntermediateLayerGetter
+from deim._engine.core import register
 
 
 @register()

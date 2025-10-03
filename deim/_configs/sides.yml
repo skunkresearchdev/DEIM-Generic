@@ -6,7 +6,7 @@ __include__:
     "./_base/dataset_sides.yml",
     "./_base/runtime.yml",
     "./_base/dfine_hgnetv2.yml",
-    "./_base/dataloader.yml",
+    "./_base/dataloader_sides.yml",
     "./_base/optimizer.yml",
   ]
 
@@ -64,6 +64,7 @@ optimizer:
 
 # Training parameters
 epoches: 80  # Note: using 'epoches' to match original config spelling
+
 train_dataloader:
   total_batch_size: 32
   dataset:
