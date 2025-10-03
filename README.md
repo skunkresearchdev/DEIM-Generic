@@ -12,14 +12,23 @@ A production-ready Python module for thermal object detection, optimized for veh
 
 ## 🎯 Features
 
-- **🔥 Thermal-Optimized**: Handles colormap variations across -10°C to 50°C environmental temperatures
-- **⚡ Simple API**: Train and infer in <10 lines of code (like Ultralytics YOLO)
-- **🎨 Advanced Augmentation**: Mining-specific transforms (heat shimmer, dust, motion blur)
-- **📊 Two-Stage Training**: Stage 1 (89%) with aggressive augmentation, Stage 2 (11%) clean fine-tuning
-- **🔄 Auto-Scaling**: Epoch-dependent parameters automatically adjust with custom training lengths
-- **📁 Auto-Detection**: Supports COCO and YOLO annotation formats
-- **🎥 Multi-Input**: Images, videos, directories, batches
-- **👁️ Visualization**: Built-in supervision package integration
+- 🔥 **Thermal-Optimized**: Handles colormap variations across multiple environmental temperatures
+- ⚡ **Simple API**: Train and infer in <10 lines of code (like Ultralytics YOLO)
+- 🎨 **Advanced Augmentation**: Mining-specific transforms (heat shimmer, dust, motion blur)
+- 📊 **Two-Stage Training**: Stage 1 (89%) with aggressive augmentation, Stage 2 (11%) clean fine-tuning
+- 🔄 **Auto-Scaling**: Epoch-dependent parameters automatically adjust with custom training lengths
+- 📁 **Format Support**: COCO (primary) and YOLO formats with bidirectional conversion
+- 🎥 **Multi-Input**: Images, videos, directories, batches
+- 👁️ **Visualization**: Built-in supervision package integration
+- 🏗️ **Multi-Architecture**: Test YOLO, RT-DETR, D-FINE, and custom models on same dataset
+
+## 📚 Documentation
+
+| Document | Description |
+|----------|-------------|
+| 📖 [**QUICKSTART.md**](docs/QUICKSTART.md) | Get started in 3 steps - train on custom datasets in 5 minutes |
+| ⚙️ [**CONFIGURATION_REFERENCE.md**](docs/CONFIGURATION_REFERENCE.md) | Complete parameter reference for config files |
+| 🔄 [**FORMAT_CONVERSION.md**](docs/FORMAT_CONVERSION.md) | Convert between COCO and YOLO annotation formats |
 
 ---
 
@@ -312,9 +321,7 @@ Batch Size: 32
 
 **Want to train DEIM on your own dataset?**
 
-📚 **Documentation**:
-- **[QUICKSTART.md](docs/QUICKSTART.md)** - Get started in 3 steps (5 minutes)
-- **[CONFIGURATION_REFERENCE.md](docs/CONFIGURATION_REFERENCE.md)** - Complete parameter reference
+📚 **See Documentation**: [QUICKSTART.md](docs/QUICKSTART.md) for 3-step setup
 
 **Quick example**:
 ```python
@@ -345,7 +352,14 @@ model.train(
 
 ## 📂 Dataset Structure
 
-### COCO Format
+### COCO Format (Recommended)
+
+We use **COCO format** as the primary annotation format because:
+- ✅ Multi-model testing (YOLO, RT-DETR, D-FINE, etc.)
+- ✅ Industry standard for benchmarking
+- ✅ Rich metadata and standardized evaluation metrics
+- ✅ Framework compatibility (Detectron2, MMDetection, Ultralytics)
+
 ```
 dataset/
 ├── annotations/
@@ -361,7 +375,8 @@ dataset/
         └── ...
 ```
 
-### YOLO Format
+### YOLO Format (Alternative)
+
 ```
 dataset/
 ├── train/
@@ -376,7 +391,12 @@ dataset/
     └── ...
 ```
 
-**Auto-detection**: The module automatically detects format on dataset load.
+### Format Conversion
+
+Need to convert between formats? See **[FORMAT_CONVERSION.md](docs/FORMAT_CONVERSION.md)** for:
+- 🔄 COCO → YOLO conversion (Ultralytics built-in)
+- 🔄 YOLO → COCO conversion (with examples)
+- 📊 Format comparison and use cases
 
 ---
 
@@ -444,7 +464,7 @@ pytest tests/
 
 ```mermaid
 graph TB
-    A[Mining Truck Approaches] --> B{Camera System}
+    A[Road-Train Approaches] --> B{Camera System}
     B --> C[Under Camera<br/>Road-mounted]
     B --> D[Sides Camera<br/>90° mounted]
 
@@ -485,13 +505,25 @@ MIT License - See [LICENSE](LICENSE) file for details.
 
 ---
 
-## 📞 Support
+## 📞 Support & Resources
 
-For issues, questions, or feature requests:
-- Open an issue on GitHub
-- Check existing documentation
-- Review example scripts in `/examples`
+### Documentation
+- 📖 [Quick Start Guide](docs/QUICKSTART.md) - Setup in 5 minutes
+- ⚙️ [Configuration Reference](docs/CONFIGURATION_REFERENCE.md) - All parameters explained
+- 🔄 [Format Conversion](docs/FORMAT_CONVERSION.md) - COCO ↔ YOLO conversion
+
+### Getting Help
+- 💬 Open an issue on GitHub
+- 📧 Check existing documentation
+- 🔍 Review example scripts
 
 ---
 
-**Built for thermal imaging in extreme mining environments. Optimized for real-time GPU inference. Production-ready.** 🚛🔥
+<div align="center">
+
+**Built for thermal imaging in extreme mining environments**
+**Optimized for real-time GPU inference • Production-ready**
+
+🚛 🔥 ⚡
+
+</div>
