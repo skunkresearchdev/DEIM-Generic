@@ -28,13 +28,13 @@ def example_training_pretrained():
     """Example: Training with pretrained weights"""
 
     # Initialize model
-    model = DEIM(config='under')
+    model = DEIM(config='sides')
 
     # Train with pretrained weights (transfer learning)
     # Use the best model from a previous training run
     model.train(
-        pretrained='deim_outputs/best_models/under/best_stg1.pth',
-        epochs=250,
+        pretrained='deim_outputs/best_models/sides/best_stg1.pth',
+        epochs=500,
         batch_size=32
     )
 

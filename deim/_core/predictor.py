@@ -50,7 +50,7 @@ class Predictor:
             import supervision as sv
             self.supervision_available = True
             self.box_annotator = sv.BoxAnnotator()
-            self.label_annotator = sv.LabelAnnotator()
+            self.label_annotator = sv.LabelAnnotator(smart_position=True)
         except ImportError:
             self.supervision_available = False
             print("⚠️  Supervision not installed. Visualization disabled.")

@@ -32,7 +32,7 @@ class Visualizer:
 
             # Initialize annotators
             self.box_annotator = sv.BoxAnnotator()
-            self.label_annotator = sv.LabelAnnotator()
+            self.label_annotator = sv.LabelAnnotator(smart_position=True)
 
             # Optional: mask annotator for segmentation
             try:
