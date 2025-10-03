@@ -34,6 +34,47 @@ SanitizeBoundingBoxes = register(name='SanitizeBoundingBoxes')(SanitizeBoundingB
 RandomCrop = register()(T.RandomCrop)
 Normalize = register()(T.Normalize)
 
+# Thermal-specific transforms for mining environment
+# Note: GaussianBlur and RandomRotation need wrapping to add 'p' parameter support
+# RandomPerspective and RandomAdjustSharpness already support 'p' natively
+
+@register()
+class GaussianBlur(T.GaussianBlur):
+    def __init__(self, kernel_size, sigma=(0.1, 2.0), p: float = 1.0):
+        super().__init__(kernel_size, sigma)
+        self.p = p
+
+    def __call__(self, *inputs: Any) -> Any:
+        if torch.rand(1) >= self.p:
+            return inputs if len(inputs) > 1 else inputs[0]
+        return super().forward(*inputs)
+
+
+@register()
+class RandomRotation(T.RandomRotation):
+    def __init__(self, degrees, interpolation=T.InterpolationMode.NEAREST, expand=False, center=None, fill=0, p: float = 1.0):
+        super().__init__(degrees, interpolation, expand, center, fill)
+        self.p = p
+
+    def __call__(self, *inputs: Any) -> Any:
+        if torch.rand(1) >= self.p:
+            return inputs if len(inputs) > 1 else inputs[0]
+        return super().forward(*inputs)
+
+
+@register()
+class RandomPerspective(T.RandomPerspective):
+    def __init__(self, distortion_scale: float = 0.5, p: float = 0.5, interpolation=T.InterpolationMode.BILINEAR, fill=0):
+        # Note: RandomPerspective already has 'p' but we override to ensure consistency
+        super().__init__(distortion_scale, p, interpolation, fill)
+
+
+@register()
+class RandomAdjustSharpness(T.RandomAdjustSharpness):
+    def __init__(self, sharpness_factor: float, p: float = 0.5):
+        # Note: RandomAdjustSharpness already has 'p' parameter
+        super().__init__(sharpness_factor, p)
+
 
 @register()
 class EmptyTransform(T.Transform):

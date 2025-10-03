@@ -1,0 +1,178 @@
+version: '3.8'
+
+services:
+  cvat_db:
+    container_name: cvat_db
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_DB: cvat
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - ./volumes/cvat_db:/var/lib/postgresql/data
+    networks:
+      - cvat
+
+  cvat_redis:
+    container_name: cvat_redis
+    image: redis:7.0-alpine
+    restart: always
+    networks:
+      - cvat
+
+  cvat:
+    container_name: cvat
+    image: cvat/server:v2.11.0
+    restart: always
+    depends_on:
+      - cvat_db
+      - cvat_redis
+    environment:
+      DJANGO_MODWSGI_EXTRA_ARGS: ''
+      ALLOWED_HOSTS: '*'
+      CVAT_REDIS_HOST: cvat_redis
+      CVAT_POSTGRES_HOST: cvat_db
+      CVAT_POSTGRES_USER: root
+      CVAT_POSTGRES_DBNAME: cvat
+      CVAT_POSTGRES_PASSWORD: ''
+      ADAPTIVE_AUTO_ANNOTATION: 'false'
+      IAM_OPA_BUNDLE: '1'
+      no_proxy: elasticsearch,kibana,logstash,nuclio,opa,${no_proxy:-}
+      NUMPROCS: 1
+    command: -c supervisord/server.conf
+    volumes:
+      - ./volumes/cvat_data:/home/django/data
+      - ./volumes/cvat_keys:/home/django/keys
+      - ./volumes/cvat_logs:/home/django/logs
+      - ./volumes/cvat_models:/home/django/models
+    ports:
+      - "12808:8080"
+    networks:
+      - cvat
+
+  cvat_ui:
+    container_name: cvat_ui
+    image: cvat/ui:v2.11.0
+    restart: always
+    depends_on:
+      - cvat
+    networks:
+      - cvat
+    ports:
+      - "1280:80"
+
+  cvat_worker_import:
+    container_name: cvat_worker_import
+    image: cvat/server:v2.11.0
+    restart: always
+    depends_on:
+      - cvat_db
+      - cvat_redis
+    environment:
+      CVAT_REDIS_HOST: cvat_redis
+      CVAT_POSTGRES_HOST: cvat_db
+      CVAT_POSTGRES_USER: root
+      CVAT_POSTGRES_DBNAME: cvat
+      CVAT_POSTGRES_PASSWORD: ''
+      no_proxy: elasticsearch,kibana,logstash,nuclio,opa,${no_proxy:-}
+      NUMPROCS: 2
+    command: -c supervisord/worker.import.conf
+    volumes:
+      - ./volumes/cvat_data:/home/django/data
+      - ./volumes/cvat_keys:/home/django/keys
+      - ./volumes/cvat_logs:/home/django/logs
+      - ./volumes/cvat_models:/home/django/models
+    networks:
+      - cvat
+
+  cvat_worker_export:
+    container_name: cvat_worker_export
+    image: cvat/server:v2.11.0
+    restart: always
+    depends_on:
+      - cvat_db
+      - cvat_redis
+    environment:
+      CVAT_REDIS_HOST: cvat_redis
+      CVAT_POSTGRES_HOST: cvat_db
+      CVAT_POSTGRES_USER: root
+      CVAT_POSTGRES_DBNAME: cvat
+      CVAT_POSTGRES_PASSWORD: ''
+      no_proxy: elasticsearch,kibana,logstash,nuclio,opa,${no_proxy:-}
+      NUMPROCS: 2
+    command: -c supervisord/worker.export.conf
+    volumes:
+      - ./volumes/cvat_data:/home/django/data
+      - ./volumes/cvat_keys:/home/django/keys
+      - ./volumes/cvat_logs:/home/django/logs
+      - ./volumes/cvat_models:/home/django/models
+    networks:
+      - cvat
+
+  cvat_worker_annotation:
+    container_name: cvat_worker_annotation
+    image: cvat/server:v2.11.0
+    restart: always
+    depends_on:
+      - cvat_db
+      - cvat_redis
+    environment:
+      CVAT_REDIS_HOST: cvat_redis
+      CVAT_POSTGRES_HOST: cvat_db
+      CVAT_POSTGRES_USER: root
+      CVAT_POSTGRES_DBNAME: cvat
+      CVAT_POSTGRES_PASSWORD: ''
+      no_proxy: elasticsearch,kibana,logstash,nuclio,opa,${no_proxy:-}
+      NUMPROCS: 1
+    command: -c supervisord/worker.annotation.conf
+    volumes:
+      - ./volumes/cvat_data:/home/django/data
+      - ./volumes/cvat_keys:/home/django/keys
+      - ./volumes/cvat_logs:/home/django/logs
+      - ./volumes/cvat_models:/home/django/models
+    networks:
+      - cvat
+
+  cvat_worker_webhooks:
+    container_name: cvat_worker_webhooks
+    image: cvat/server:v2.11.0
+    restart: always
+    depends_on:
+      - cvat_db
+      - cvat_redis
+    environment:
+      CVAT_REDIS_HOST: cvat_redis
+      CVAT_POSTGRES_HOST: cvat_db
+      CVAT_POSTGRES_USER: root
+      CVAT_POSTGRES_DBNAME: cvat
+      CVAT_POSTGRES_PASSWORD: ''
+      no_proxy: elasticsearch,kibana,logstash,nuclio,opa,${no_proxy:-}
+      NUMPROCS: 1
+    command: -c supervisord/worker.webhooks.conf
+    volumes:
+      - ./volumes/cvat_data:/home/django/data
+      - ./volumes/cvat_keys:/home/django/keys
+      - ./volumes/cvat_logs:/home/django/logs
+      - ./volumes/cvat_models:/home/django/models
+    networks:
+      - cvat
+
+  opa:
+    container_name: cvat_opa
+    image: openpolicyagent/opa:0.45.0-rootless
+    restart: always
+    networks:
+      - cvat
+    command:
+      - run
+      - --server
+      - --set=services.cvat.url=http://cvat:8080
+      - --set=bundles.cvat.service=cvat
+      - --set=bundles.cvat.resource=/api/auth/rules
+      - --set=bundles.cvat.polling.min_delay_seconds=5
+      - --set=bundles.cvat.polling.max_delay_seconds=15
+
+networks:
+  cvat:
+    driver: bridge

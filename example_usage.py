@@ -18,7 +18,8 @@ def example_training():
     model = DEIM(config='under')
 
     # Train the model (this would run actual training on GPU)
-    model.train(epochs=400, batch_size=64)
+    # Uncomment to run:
+    # model.train(epochs=320, batch_size=8)
 
     print("Training example prepared (not executed to avoid GPU conflict)")
 
@@ -27,14 +28,15 @@ def example_training_pretrained():
     """Example: Training with pretrained weights"""
 
     # Initialize model
-    model = DEIM(config='sides')
+    model = DEIM(config='under')
 
     # Train with pretrained weights (transfer learning)
-    # model.train(
-    #     pretrained='base_model.pth',
-    #     epochs=50,
-    #     learning_rate=0.001
-    # )
+    # Use the best model from a previous training run
+    model.train(
+        pretrained='deim_outputs/best_models/under/best_stg1.pth',
+        epochs=250,
+        batch_size=32
+    )
 
     print("Transfer learning example prepared")
 
@@ -45,8 +47,8 @@ def example_inference():
     # Initialize model
     model = DEIM(config='under')
 
-    # Load trained weights
-    # model.load('deim_outputs/under/20241002_143022/best_stg1.pth')
+    # Load trained weights from a completed training run
+    # model.load('deim_outputs/under/20251002_215916/best_stg2.pth')
 
     # Run inference on single image
     # results = model.predict('image.jpg', visualize=True)
@@ -82,8 +84,8 @@ if __name__ == '__main__':
     print("\nNOTE: Examples are commented out to avoid GPU conflicts")
     print("Uncomment the code you want to run when GPU is available\n")
 
-    example_training()
-    # example_training_pretrained()
+    # example_training()
+    example_training_pretrained()
     # example_inference()
     # example_custom_dataset()
 

@@ -75,7 +75,11 @@ class Trainer:
 
         # Add pretrained weights if provided
         if self.pretrained:
-            cmd.extend(["-t", str(self.pretrained)])
+            # Convert to absolute path if relative
+            pretrained_path = Path(self.pretrained)
+            if not pretrained_path.is_absolute():
+                pretrained_path = pretrained_path.absolute()
+            cmd.extend(["-t", str(pretrained_path)])
 
         # Set output directory in command (absolute path)
         cmd.extend(["--output-dir", str(output_path.absolute())])

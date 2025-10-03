@@ -138,32 +138,33 @@ class DEIM:
         print(f"  Batch Size: {self.cfg.get('batch_size', 32)}")
         print(f"  Learning Rate: {self.cfg.get('learning_rate', 0.001)}")
 
-        # Generate output directory with timestamp
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-
-        # Determine output base
+        # Determine output base directory
+        # NOTE: Do NOT add timestamp here - the training engine (yaml_config.py)
+        # automatically appends a timestamp to output_dir. If we add one here too,
+        # we get nested timestamps like: deim_outputs/under/20251002_215916/20251002_215921/
         if 'output_dir' in self.cfg:
-            output_base = self.cfg['output_dir']
+            # Use output_dir from config (e.g., 'deim_outputs/under')
+            output_dir = self.cfg['output_dir']
         else:
-            # Use default structure
+            # Use default structure based on config name
             if self.config_name in ['under', 'sides']:
-                output_base = f"deim_outputs/{self.config_name}"
+                output_dir = f"deim_outputs/{self.config_name}"
             else:
-                output_base = "deim_outputs/custom"
+                output_dir = "deim_outputs/custom"
 
-        output_dir = Path(output_base) / timestamp
-        print(f"  Output Directory: {output_dir}")
+        # The training engine will create: {output_dir}/{timestamp}/
+        # e.g., deim_outputs/under/20251003_123045/
+        print(f"  Output Base: {output_dir}")
 
         print("\n⚡ Starting training...")
         print("  Note: This will take time. Monitor logs for progress.")
 
         # Run training
-        results = self.trainer.train(output_dir=str(output_dir))
+        results = self.trainer.train(output_dir=output_dir)
 
         print(f"\n✅ Training complete!")
-        print(f"  Best model saved to: {output_dir}/best_stg1.pth")
-        if (output_dir / "best_stg2.pth").exists():
-            print(f"  Stage 2 model: {output_dir}/best_stg2.pth")
+        print(f"  Models saved to: {output_dir}/<timestamp>/")
+        print(f"  Note: Training engine creates timestamped subdirectory automatically")
 
         return results
 

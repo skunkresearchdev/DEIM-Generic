@@ -69,9 +69,9 @@ train_dataloader:
   dataset:
     transforms:
       policy:
-        epoch: 74
+        epoch: 71  # 89% of 80 epochs
   collate_fn:
-    stop_epoch: 74
+    stop_epoch: 71  # 89% of 80 epochs
     ema_restart_decay: 0.9999
     base_size_repeat: ~
 

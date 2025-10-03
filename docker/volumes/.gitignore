@@ -1,0 +1,3 @@
+# Ignore all volume data (persistent storage)
+*
+!.gitignore

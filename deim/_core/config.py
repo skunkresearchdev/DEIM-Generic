@@ -146,7 +146,37 @@ class ConfigManager:
                 # Direct assignment
                 self.config[key] = value
 
+        # Auto-scale epoch-dependent parameters if epochs were overridden
+        if 'epochs' in overrides:
+            self._scale_epoch_dependent_params(overrides['epochs'])
+
         return self.config
+
+    def _scale_epoch_dependent_params(self, new_epochs: int):
+        """
+        Automatically scale epoch-dependent parameters when epochs change
+
+        Args:
+            new_epochs: New number of epochs
+        """
+        # Calculate scaling factor (use ~89% of total epochs for stopping augmentation)
+        # Stage 1 (1-89%): Training with thermal augmentation
+        # Stage 2 (90-100%): Fine-tuning without augmentation
+        stop_epoch = int(new_epochs * 0.89)
+
+        # Scale transforms policy epoch (when data augmentation stops)
+        if 'train_dataloader' in self.config:
+            if 'dataset' in self.config['train_dataloader']:
+                if 'transforms' in self.config['train_dataloader']['dataset']:
+                    if 'policy' in self.config['train_dataloader']['dataset']['transforms']:
+                        self.config['train_dataloader']['dataset']['transforms']['policy']['epoch'] = stop_epoch
+                        print(f"  Auto-scaled transforms.policy.epoch: {stop_epoch} (89% of {new_epochs})")
+
+            # Scale collate_fn stop_epoch (when multi-scale training stops)
+            if 'collate_fn' in self.config['train_dataloader']:
+                if 'stop_epoch' in self.config['train_dataloader']['collate_fn']:
+                    self.config['train_dataloader']['collate_fn']['stop_epoch'] = stop_epoch
+                    print(f"  Auto-scaled collate_fn.stop_epoch: {stop_epoch} (89% of {new_epochs})")
 
     def _set_nested(self, cfg: Dict[str, Any], path: str, value: Any):
         """Set a nested config value using dot notation"""

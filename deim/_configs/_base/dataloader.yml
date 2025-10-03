@@ -9,20 +9,25 @@ train_dataloader:
         - {type: RandomIoUCrop, p: 0.8}
         - {type: SanitizeBoundingBoxes, min_size: 1}
         - {type: RandomHorizontalFlip}
+        # Thermal-specific augmentations for mining environment
+        - {type: GaussianBlur, kernel_size: [3, 5], sigma: [0.1, 2.0], p: 0.3}  # Heat shimmer, dust, motion blur
+        - {type: RandomRotation, degrees: 10, p: 0.5}  # Vehicle angles, camera mounting variation
+        - {type: RandomPerspective, distortion_scale: 0.2, p: 0.3}  # Camera position variation
+        - {type: RandomAdjustSharpness, sharpness_factor: 2, p: 0.3}  # Thermal camera focus variation
         - {type: Resize, size: [640, 640], }
         - {type: SanitizeBoundingBoxes, min_size: 1}
         - {type: ConvertPILImage, dtype: 'float32', scale: True}
         - {type: ConvertBoxes, fmt: 'cxcywh', normalize: True}
       policy:
         name: stop_epoch
-        epoch: 72 # epoch in [71, ~) stop `ops`
-        ops: ['Mosaic', 'RandomPhotometricDistort', 'RandomZoomOut', 'RandomIoUCrop']
+        epoch: 64 # 89% of base 72 epochs - auto-scaled when epochs overridden
+        ops: ['Mosaic', 'RandomPhotometricDistort', 'RandomZoomOut', 'RandomIoUCrop', 'GaussianBlur', 'RandomRotation', 'RandomPerspective', 'RandomAdjustSharpness']
 
   collate_fn:
     type: BatchImageCollateFunction
     base_size: 640
     base_size_repeat: 3
-    stop_epoch: 72 # epoch in [72, ~) stop `multiscales`
+    stop_epoch: 64 # 89% of base 72 epochs - auto-scaled when epochs overridden
 
   shuffle: True
   total_batch_size: 32

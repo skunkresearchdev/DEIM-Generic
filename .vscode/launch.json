@@ -1,0 +1,65 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug train.py (nproc=1 Simulation)",
+            "type": "python", // Use the Python debugger extension
+            "request": "launch",
+            "program": "${workspaceFolder}/train.py", // Path to your script
+            "console": "integratedTerminal", // Or "internalConsole"
+            "args": [ // Arguments normally passed after train.py
+                "-c",
+                "./deim_hgnetv2_n_coco.yml", // Replace ${model} or use specific file
+                "--use-amp",
+                "--seed=0",
+                "-t",
+                "./deim_dfine_hgnetv2_n_coco_160e.pth"
+                // Add any other args you need
+            ],
+            "env": { // Environment variables torchrun would set for nproc=1
+                "MASTER_ADDR": "localhost",
+                "MASTER_PORT": "7778", // Match your torchrun port or choose another free one
+                "RANK": "0",
+                "WORLD_SIZE": "1",
+                "LOCAL_RANK": "0"
+                // Add PYTHONPATH if your imports require it and VS Code doesn't pick it up automatically
+                // "PYTHONPATH": "${workspaceFolder}/../:${env:PYTHONPATH}" // Example if train.py needs parent dir
+            },
+            "justMyCode": true // Set to false to step into library code
+        },
+        {
+            "name": "Python: Debug Script",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/tools/inference/torch_inf_super.py",
+            "args": [
+                "-c",
+                "deim_hgnetv2_n_coco.yml",
+                "-r",
+                "deim_outputs/deim_hgnetv2_n_coco/best_stg1_converted.pth",
+                "--input",
+                "66d8c56ea502fd4f902c330e_TC01_cupy.mp4",
+                "--device",
+                "cpu"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "Python: train.py",
+            "type": "python",
+            "request": "launch",
+            "program": "train.py",
+            "console": "integratedTerminal",
+            "args": [
+                "-c",
+                "deim_model_under.yml",
+                "--use-amp",
+                "--seed=0",
+                "-t",
+                "base_model.pth"
+            ],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
